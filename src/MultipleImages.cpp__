@@ -1,0 +1,63 @@
+#include <Arduino.h>
+#include <TFT_eSPI.h>
+#include "HB9IIU_BacklightControl.h"
+
+#include "random_image0.h"
+#include "random_image1.h"
+#include "random_image2.h"
+#include "random_image3.h"
+#include "random_image4.h"
+
+static TFT_eSPI tft = TFT_eSPI();
+
+static void displayRGB565Image(int x, int y, const RGB565Image &img)
+{
+  backlightSetPercent(0);
+  tft.startWrite();
+  tft.pushImage(x, y, img.width, img.height, img.data);
+  tft.endWrite();
+}
+
+void setup()
+{
+  Serial.begin(115200);
+  tft.init();
+  tft.setRotation(1);
+  tft.invertDisplay(HB9_TFT_INVERT);
+  tft.fillScreen(TFT_BLACK);
+  tft.setSwapBytes(true);
+  backlightInit();
+}
+
+void loop()
+{
+  displayRGB565Image(0, 0, random_image0_img);
+  fadeInTFT(5);
+  delay(1000);
+  fadeIOutTFT(5);
+  delay(1000);
+
+  displayRGB565Image(0, 0, random_image1_img);
+  fadeInTFT(5);
+  delay(1000);
+  fadeIOutTFT(5);
+  delay(1000);
+
+  displayRGB565Image(0, 0, random_image2_img);
+  fadeInTFT(5);
+  delay(1000);
+  fadeIOutTFT(5);
+  delay(1000);
+
+  displayRGB565Image(0, 0, random_image3_img);
+  fadeInTFT(5);
+  delay(1000);
+  fadeIOutTFT(5);
+  delay(1000);
+
+  displayRGB565Image(0, 0, random_image4_img);
+  fadeInTFT(5);
+  delay(1000);
+  fadeIOutTFT(5);
+  delay(1000);
+}
