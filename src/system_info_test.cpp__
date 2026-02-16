@@ -1,0 +1,31 @@
+#include <Arduino.h>
+#include <TFT_eSPI.h>
+#include <HB9IIU_BacklightControl.h>
+#include <HB9IIU_SystemInformation.h>
+
+
+static TFT_eSPI tft = TFT_eSPI();
+
+
+void setup()
+{
+  Serial.begin(115200);
+  delay(2000);
+
+  tft.init();
+  tft.setRotation(1);
+  tft.invertDisplay(HB9_TFT_INVERT);
+  tft.fillScreen(TFT_BLACK);
+  tft.setSwapBytes(true);
+  backlightInit();
+
+  Serial.println("Ready");
+ HB9IIU_DisplaySystemInformation() ;
+
+}
+
+void loop()
+{
+
+  delay(10);
+}
