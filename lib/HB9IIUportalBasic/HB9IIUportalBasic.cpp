@@ -1,4 +1,4 @@
-#include "HB9IIUportalConfigurator.h"
+#include "HB9IIUportalBasic.h"
 
 #include <WiFi.h>
 #include <WebServer.h>
@@ -98,57 +98,66 @@ namespace HB9IIUPortal
         }
     }
 
-    bool checkFactoryReset(uint8_t buttonPin, uint8_t ledPin)
+    bool checkFactoryReset()
     {
-        // Assume pinMode(buttonPin, INPUT_PULLUP) and pinMode(ledPin, OUTPUT)
-        // have already been called in the main sketch.
+        Serial.println("\n[BOOT] Checking factory reset ...");
 
-        digitalWrite(ledPin, LOW);
-        Serial.println("\n[BOOT] Checking factory reset button...");
+        uint16_t tx, ty;
+        bool tftTouched = (tft.getTouch(&tx, &ty) != 0);
 
-        delay(50); // small settle
-
-        if (digitalRead(buttonPin) == LOW)
+        if (tftTouched)
         {
-            Serial.println("[BOOT] Factory reset button is held LOW at startup.");
-            Serial.println("      Hold it for ~1 second to confirm factory reset...");
+            Serial.println("[BOOT] Factory reset triggered by button or TFT touch at startup.");
+            Serial.println("         Hold for ~1 second to confirm factory reset...");
 
             unsigned long start = millis();
             bool stillHeld = true;
-
-            while (millis() - start < 1000)
-            {
-                if (digitalRead(buttonPin) != LOW)
-                {
+            const unsigned long holdDuration = 3000; // ms
+            while (millis() - start < holdDuration) {
+                uint16_t tx2, ty2;
+                if (tft.getTouch(&tx2, &ty2) == 0) {
                     stillHeld = false;
                     break;
+                } else {
+                    Serial.println("[BOOT]Touch detected 👆");
                 }
-                // Small visual feedback
-                digitalWrite(ledPin, HIGH);
-                delay(50);
-                digitalWrite(ledPin, LOW);
-                delay(50);
+                delay(10);
             }
 
             if (stillHeld)
             {
                 Serial.println("[BOOT] Factory reset confirmed. Erasing all preferences and restarting...");
 
-                // Blink LED quickly before reset
-                for (int i = 0; i < 8; ++i)
-                {
-                    digitalWrite(ledPin, HIGH);
-                    delay(80);
-                    digitalWrite(ledPin, LOW);
-                    delay(80);
-                }
+                tft.fillScreen(TFT_BLACK);
+                tft.setRotation(1);    // ensure correct width/height
 
+                int yCenter = tft.height() / 2;
+
+                // Line 1
+                tft.setTextFont(4);
+                tft.setTextColor(TFT_RED, TFT_BLACK);
+                tft.setTextDatum(MC_DATUM);
+                tft.drawString("FACTORY RESET", tft.width() / 2, yCenter - 40);
+
+                // Line 2
+                tft.setTextColor(TFT_WHITE, TFT_BLACK);
+                tft.drawString("Erasing all settings...", tft.width() / 2, yCenter + 10);
+
+                // Line 3 (manual centering)
+                tft.setTextFont(2);
+                tft.setTextDatum(TL_DATUM);
+                const char *msg = "Please wait";
+                int16_t x = (tft.width() - tft.textWidth(msg)) / 2;
+                tft.drawString(msg, x, yCenter + 50);
+
+                // Actually perform the factory reset and restart
                 eraseAllPreferencesAndRestart();
-                // does not return
+                // This function will not return
+                return true;
             }
             else
             {
-                Serial.println("[BOOT] Factory reset canceled (button released early).");
+                Serial.println("[BOOT] Factory reset canceled (button/touch released early).");
             }
         }
         else
@@ -158,6 +167,7 @@ namespace HB9IIUPortal
 
         return false;
     }
+
 
     void eraseAllPreferencesAndRestart()
     {
@@ -172,8 +182,6 @@ namespace HB9IIUPortal
         {
             Serial.printf("❌ [HB9IIUPortal] Failed to erase NVS. Error: %d\n", err);
         }
-
-        delay(1000);
         ESP.restart();
     }
 
@@ -209,7 +217,7 @@ namespace HB9IIUPortal
         String ssid = prefs.getString("ssid", "");
         String pass = prefs.getString("pass", "");
         // testing with wrong SSID
-        //ssid = "Kilimangaro";
+        // ssid = "Kilimangaro";
         prefs.end();
 
         // If SSID looks like "NAME (-48 dBm)" from our own scan label, strip the suffix (extra safety)
@@ -242,57 +250,50 @@ namespace HB9IIUPortal
         WiFi.begin(ssid.c_str(), pass.c_str());
 
         // Wait up to ~10s
-      for (int i = 0; i < 20; ++i)
-{
+        for (int i = 0; i < 20; ++i)
+        {
 
-if (WiFi.status() == WL_CONNECTED)
-{
-    Serial.println();
-    Serial.println("✅ [HB9IIUPortal] Connected to WiFi!");
+            if (WiFi.status() == WL_CONNECTED)
+            {
+                Serial.println();
+                Serial.println("✅ [HB9IIUPortal] Connected to WiFi!");
 
-     return true;
-}
+                return true;
+            }
 
+            // Print a dot to serial
+            Serial.print(".");
 
+            static int dotX = 0;
+            const int textX = 130;
+            const int textY = 300;
 
-    // Print a dot to serial
-    Serial.print(".");
+            // Print header only once
+            if (i == 0)
+            {
+                tft.setTextFont(2);
+                tft.setTextSize(1);
+                tft.setTextColor(TFT_WHITE);
+                tft.setCursor(textX, textY);
+                tft.print("Connecting to WiFi ");
 
-    static int dotX = 0;
-    const int textX = 130;
-    const int textY = 300;
+                // Start dots immediately after text
+                dotX = tft.getCursorX();
+            }
 
-    // Print header only once
-    if (i == 0)
-    {
-        tft.setTextFont(2);
-        tft.setTextSize(1);
-        tft.setTextColor(TFT_WHITE);
-        tft.setCursor(textX, textY);
-        tft.print("Connecting to WiFi ");
+            // Print one new dot each iteration
+            tft.setCursor(dotX, textY);
+            tft.print(".");
+            dotX = dotX + 8; // advance for next dot
 
-        // Start dots immediately after text
-        dotX = tft.getCursorX();
-    }
+            delay(300);
+        }
 
-    // Print one new dot each iteration
-    tft.setCursor(dotX, textY);
-    tft.print(".");
-    dotX = dotX+8; // advance for next dot
-
-    delay(300);
-}
-
-        
         Serial.println("\n❌ [HB9IIUPortal] Failed to connect to saved WiFi.");
-        
 
         // --- Show failed connection message on TFT ---
-
-        tft.init();
-        tft.setRotation(1);  // make sure this is your full 480x320 mode
+        tft.setRotation(1); // make sure this is your full 480x320 mode
         tft.fillScreen(TFT_BLACK);
-        tft.setRotation(1);         // or whichever rotation gives 480×320 layout
         tft.fillScreen(TFT_BLACK);  // confirm full clear
         tft.setTextDatum(MC_DATUM); // center text alignment
         tft.setTextSize(1);
@@ -300,20 +301,23 @@ if (WiFi.status() == WL_CONNECTED)
         // --- Line 1: Main error message (Font 4, red) ---
         tft.setTextFont(4);
         tft.setTextColor(TFT_RED, TFT_BLACK);
-        tft.drawString("Could not connect to", 240, 120); // centered at (x=240,y=120)
+        int xCenter = tft.width() / 2;
+        int y1 = tft.height() / 2 - 40;
+        int y2 = tft.height() / 2;
+        tft.drawString("Could not connect to", xCenter, y1); // centered
 
         // --- Line 2: SSID (Font 4, white) ---
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString(ssid, 240, 160); // center below the first line
+        tft.drawString(ssid, xCenter, y2); // center below the first line
 
         // --- Line 3: Reboot message (Font 2, yellow) ---
         tft.setTextFont(2);
         tft.setTextColor(TFT_YELLOW, TFT_BLACK);
-        tft.drawString("Rebooting in 4 seconds...", 240, 210);
+        tft.drawString("Rebooting in 4 seconds...", xCenter, y2 + 30);
 
         // --- Line 4: Factory reset hint (Font 2, white) ---
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
-        tft.drawString("Press encoder switch to factory Reset", 240, 240);
+        tft.drawString("Press encoder switch to factory Reset", xCenter, y2 + 60);
 
         // --- Wait, then reboot ---
         delay(4000);
@@ -373,15 +377,7 @@ if (WiFi.status() == WL_CONNECTED)
         Serial.println(WiFi.softAPIP());
 
         // ─── CYD QR CODE ON TFT (ONLY addition) ───
-
-        tft.init();
-        tft.setRotation(1); // adjust if your CYD orientation differs
-
-#ifdef TFT_BL
-        pinMode(TFT_BL, OUTPUT);
-        digitalWrite(TFT_BL, HIGH); // backlight on
-#endif
-
+        tft.setRotation(1); 
         tft.fillScreen(TFT_BLACK);
         tft.setTextColor(TFT_WHITE, TFT_BLACK);
         tft.setTextDatum(MC_DATUM);
@@ -430,6 +426,7 @@ if (WiFi.status() == WL_CONNECTED)
 
         server.begin();
         Serial.println("✅ [HB9IIUPortal] Web server started. Connect to 'HB9IIUSetup' Wi-Fi.");
+ 
     }
 
     static void handleRootCaptivePortal()
@@ -524,20 +521,10 @@ if (WiFi.status() == WL_CONNECTED)
     {
         Serial.println("💾 [HB9IIUPortal] Processing Wi-Fi credentials save request...");
 
-        // Now require ssid, password AND callsign
-        if (!server.hasArg("ssid") || !server.hasArg("password") || !server.hasArg("callsign"))
-        {
-            Serial.println("⚠️ [HB9IIUPortal] Missing required fields (ssid/password/callsign).");
-            server.send(400, "text/plain", "Missing ssid, password, or callsign.");
-            return;
-        }
-
         // Raw form values
         String ssidLabel = server.arg("ssid");
         String password = server.arg("password");
         String timeStr = server.hasArg("time") ? server.arg("time") : "";
-        String callsign = server.arg("callsign");
-        callsign.trim();
 
         // Strip " (… dBm)" to get the real SSID from label
         String ssid = ssidLabel;
@@ -552,15 +539,6 @@ if (WiFi.status() == WL_CONNECTED)
         Serial.printf("📝 [HB9IIUPortal] Using raw SSID: '%s'\n", ssid.c_str());
         Serial.printf("📝 [HB9IIUPortal] Received Password: '%s'\n", password.c_str());
         Serial.printf("🕒 [HB9IIUPortal] Received Time: '%s'\n", timeStr.c_str());
-        Serial.printf("📝 [HB9IIUPortal] Received Callsign: '%s'\n", callsign.c_str());
-
-        // Extra safety: callsign must not be empty (JS already checks, but we enforce here too)
-        if (callsign.length() == 0)
-        {
-            Serial.println("❌ [HB9IIUPortal] Callsign is empty. Staying in portal.");
-            server.send(400, "text/plain", "Callsign must not be empty.");
-            return;
-        }
 
         // 1) Test the credentials BEFORE saving/restarting, using the RAW SSID
         if (!testWiFiCredentials(ssid, password, 10000)) // 10s timeout
@@ -587,36 +565,6 @@ if (WiFi.status() == WL_CONNECTED)
             Serial.println("❌ [HB9IIUPortal] Failed to open prefs namespace 'wifi' for writing.");
         }
 
-        // 2b) Save callsign in its own namespace
-        if (prefs.begin("callsign", false))
-        {
-            prefs.putString("userCallsign", callsign);
-            prefs.end();
-            Serial.printf("✅ [HB9IIUPortal] Callsign '%s' saved to NVS (namespace 'callsign').\n",
-                          callsign.c_str());
-        }
-        else
-        {
-            Serial.println("❌ [HB9IIUPortal] Failed to open prefs namespace 'callsign' for writing.");
-        }
-        // 2b) Save Callsign in prefs namespace "config"
-        if (prefs.begin("config", false))
-        {
-            if (callsign.length() > 0)
-            {
-                prefs.putString("callsign", callsign);
-                Serial.println("✅ [HB9IIUPortal] Callsign saved to NVS (namespace 'config', key 'callsign').");
-            }
-            else
-            {
-                Serial.println("⚠️ [HB9IIUPortal] Callsign empty, not saving.");
-            }
-            prefs.end();
-        }
-        else
-        {
-            Serial.println("❌ [HB9IIUPortal] Failed to open prefs namespace 'config' for writing.");
-        }
         // 3) Optional: parse and save iPhone time JSON (if provided)
         if (timeStr.length() > 0)
         {

@@ -17,7 +17,7 @@ namespace HB9IIUPortal
     // - buttonPin: INPUT_PULLUP, active LOW
     // - ledPin   : OUTPUT
     // If button is held LOW at boot for ~1s, NVS is erased and ESP restarts.
-    bool checkFactoryReset(uint8_t buttonPin, uint8_t ledPin);
+    bool checkFactoryReset();
 
     // State helpers
     bool isInAPMode();            // true when captive portal is running

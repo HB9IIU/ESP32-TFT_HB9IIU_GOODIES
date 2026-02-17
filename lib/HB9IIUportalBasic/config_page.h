@@ -25,10 +25,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         .title-box{background-color:#1b3144;color:#fbf3f3;border-radius:12px;padding:15px;text-align:center;margin-bottom:20px;box-shadow:0 2px 6px rgba(0,0,0,0.15)}
         .title-box h2{margin:0;font-size:24px}
 
-        /* NEW: callsign field visually uppercase */
-        #callsign {
-            text-transform: uppercase;
-        }
+
 
         /* 🔁 blinking effect for "Checking...." */
         @keyframes blink {
@@ -59,9 +56,7 @@ const char index_html[] PROGMEM = R"rawliteral(
         </label>
     </div>
 
-    <!-- NEW: Callsign -->
-    <label for=callsign>Callsign:</label>
-    <input id=callsign name=callsign type=text placeholder="e.g. HB9IIU" required>
+
 
     <input type=hidden name=time id=time>
 
@@ -104,30 +99,11 @@ const char index_html[] PROGMEM = R"rawliteral(
         });
     }
 
-    // form + callsign + blinking button
+    // blinking button only
     const form=document.querySelector('form');
     const saveBtn=document.querySelector('button[type="submit"]');
-    const callsignInput=document.getElementById('callsign');
-
-    // NEW: force callsign to uppercase as user types
-    if(callsignInput){
-        callsignInput.addEventListener('input',function(){
-            this.value=this.value.toUpperCase();
-        });
-    }
-
     if(form&&saveBtn){
         form.addEventListener('submit',function(e){
-            // Validate callsign: must not be empty
-            if(callsignInput && callsignInput.value.trim()===''){
-                e.preventDefault();
-                alert('Please enter your callsign.');
-                saveBtn.disabled=false;
-                saveBtn.textContent='Save';
-                saveBtn.classList.remove('checking');
-                return;
-            }
-
             saveBtn.disabled=true;
             saveBtn.textContent='Checking....';
             saveBtn.classList.add('checking'); // start blinking

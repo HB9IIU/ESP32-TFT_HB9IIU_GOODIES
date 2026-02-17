@@ -38,6 +38,7 @@ void backlightInit()
   ledcAttachPin(BL_PIN, BL_CH);
   ledcWrite(BL_CH, blPolarity(blMaxDuty())); // start full ON
   bl_inited = true;
+
 }
 
 void backlightSetPercent(uint8_t percent)
