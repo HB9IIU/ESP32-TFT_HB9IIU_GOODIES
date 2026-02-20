@@ -10,7 +10,7 @@
 
 // Example: URL to your version.json file
 const char* VERSION_URL = "https://raw.githubusercontent.com/HB9IIU/ESP32-TFT_HB9IIU_GOODIES/main/firmware/version.json";
-const char* CURRENT_VERSION = "1.0.0"; // Update as needed
+const char* CURRENT_VERSION = "1.0.1"; // Update as needed
 
 bool checkForFirmwareUpdate() {
     WiFiClientSecure client;
