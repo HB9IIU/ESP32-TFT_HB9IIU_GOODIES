@@ -45,7 +45,7 @@ DEFAULT_DPI = 72
 # Create a folder named after the font under include/Generated:Fonts_For_Copy.
 # Example: include/Generated:Fonts_For_Copy/a/a24pt7b.h
 AUTO_OUT_DIR_IS_FONT_SUBFOLDER = True
-DEFAULT_OUT_ROOT_SUBDIR = "Generated:Fonts_For_Copy"
+DEFAULT_OUT_ROOT_SUBDIR = "Generated_Fonts_For_Copy"
 
 # Default location for source .ttf files (relative to this script).
 DEFAULT_TTF_SUBDIR = "Add_New_ttf_fonts here"
@@ -231,7 +231,9 @@ def generate_font_header(
     out.append(f"#define {guard}")
     out.append("")
     out.append("#include <pgmspace.h>")
-    out.append("#include <TFT_eSPI.h>  // provides GFXfont and GFXglyph")
+    out.append("#ifndef GFXfont")
+    out.append("#  include <TFT_eSPI.h>  // provides GFXfont and GFXglyph")
+    out.append("#endif")
     out.append("")
     out.append("// FreeFont (1bpp) generated from TTF by fontMaker.py")
     out.append(f"// Source: {ttf_path.name}")

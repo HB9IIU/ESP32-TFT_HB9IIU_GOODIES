@@ -2,7 +2,9 @@
 #define _JETBRAINSMONO_THIN71PT7B_H_
 
 #include <pgmspace.h>
-#include <TFT_eSPI.h>  // provides GFXfont and GFXglyph
+#ifndef GFXfont
+#  include <TFT_eSPI.h>  // provides GFXfont and GFXglyph
+#endif
 
 // FreeFont (1bpp) generated from TTF by fontMaker.py
 // Source: JetBrainsMono-Thin.ttf
