@@ -1,12 +1,14 @@
 #include <Arduino.h>
 #include <TFT_eSPI.h>
 #include <HB9IIU_BacklightControl.h>
-
+#ifndef LOAD_GFXFF // in case not defined as a build flag, define here to avoid compile errors in TFT_eSPI.h when including GFX fonts
+#define LOAD_GFXFF
+#endif
 // Select the font set folder to use from include/Generated:Fonts_For_Copy/.
 // To change the font set, modify FONT_SET_DIR below.
 // Example: FONT_SET_DIR Generated:Fonts_For_Copy/IBMPlexMono_ExtraLight
 
-#define FONT_SET_DIR Generated_Fonts_For_Copy/UnifrakturMaguntia_Regular
+#define FONT_SET_DIR Generated_Fonts_For_Copy/IBMPlexMono_ExtraLight
 
 #define _HB9_STR2(x) #x
 #define _HB9_STR(x) _HB9_STR2(x)
