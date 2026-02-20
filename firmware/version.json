@@ -1,5 +1,4 @@
 {
   "version": "1.0.0",
-  "firmware_url": "https://your-server.com/firmware.bin",
-  "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  "sha256": "aaef20c6dacce585a9cf5a30116179bf644148cbe00a972a2bcacbec4a197c36"
 }

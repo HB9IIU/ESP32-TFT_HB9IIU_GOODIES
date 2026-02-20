@@ -5,7 +5,61 @@
 #define LOAD_GFXFF
 #endif
 #include <HB9IIU_RobustWIfiConnection.h>
+#include <WiFiClientSecure.h>
+#include <ArduinoJson.h>
 
+// Example: URL to your version.json file
+const char* VERSION_URL = "https://raw.githubusercontent.com/HB9IIU/ESP32-TFT_HB9IIU_GOODIES/main/firmware/version.json";
+const char* CURRENT_VERSION = "1.0.0"; // Update as needed
+
+bool checkForFirmwareUpdate() {
+    WiFiClientSecure client;
+    client.setInsecure(); // For testing, disables certificate validation. Use proper certs for production!
+    if (!client.connect("raw.githubusercontent.com", 443)) {
+        Serial.println("[OTA] Connection failed!");
+        return false;
+    }
+    // Send HTTP GET request
+    client.print(String("GET ") + "/HB9IIU/ESP32-TFT_HB9IIU_GOODIES/main/firmware/version.json" + " HTTP/1.1\r\n" +
+                 "Host: raw.githubusercontent.com\r\n" +
+                 "Connection: close\r\n\r\n");
+    // Wait for response
+    while (client.connected() && !client.available()) delay(10);
+    String payload;
+    while (client.available()) {
+        payload += client.readStringUntil('\n');
+    }
+    // Find JSON start
+    int jsonStart = payload.indexOf('{');
+    if (jsonStart < 0) {
+        Serial.println("[OTA] No JSON found!");
+        return false;
+    }
+    String json = payload.substring(jsonStart);
+    // Parse JSON
+    JsonDocument doc;
+    DeserializationError err = deserializeJson(doc, json);
+    if (err) {
+        Serial.print("[OTA] JSON parse error: ");
+        Serial.println(err.c_str());
+        return false;
+    }
+    String remoteVersion = doc["version"];
+    String firmwareUrl = doc["firmware_url"];
+    String sha256 = doc["sha256"];
+    Serial.println("[OTA] Remote version: " + remoteVersion);
+    Serial.println("[OTA] Firmware URL: " + firmwareUrl);
+    Serial.println("[OTA] SHA-256: " + sha256);
+    // Compare versions
+    if (remoteVersion != CURRENT_VERSION) {
+        Serial.println("[OTA] Update available!");
+        // Next step: download and verify firmware
+        return true;
+    } else {
+        Serial.println("[OTA] Firmware is up to date.");
+        return false;
+    }
+}
 
 static TFT_eSPI tft = TFT_eSPI();
 
@@ -13,7 +67,7 @@ static TFT_eSPI tft = TFT_eSPI();
 void setup()
 {
   Serial.begin(115200);
-  delay(100);
+  delay(3000);
 
   tft.init();
   tft.setRotation(1);
@@ -26,8 +80,8 @@ void setup()
   HB9IIUWifiConnection(false);
   // To force strongest-known (scan), use true:
 
-
-
+  Serial.println("[OTA] Checking for firmware update...");
+  checkForFirmwareUpdate();
 }
 
 void loop()
