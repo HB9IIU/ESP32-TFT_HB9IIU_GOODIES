@@ -60,7 +60,7 @@ static void _otat_header(TFT_eSPI& tft) {
     tft.setTextColor(_OTAT_HDR_TXT, _OTAT_HDR_BG);
     tft.setTextDatum(MC_DATUM);
     tft.setTextFont(4);
-    tft.drawString("OTA FIRMWARE UPDATE", _OTAT_W / 2, _OTAT_HDR_H / 2);
+    tft.drawString("CHECKING FOR UPDATES", _OTAT_W / 2, _OTAT_HDR_H / 2);
 }
 
 // Draw one version row: grey label on the left, coloured value in the middle.
