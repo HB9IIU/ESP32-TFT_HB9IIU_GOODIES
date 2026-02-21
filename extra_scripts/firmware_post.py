@@ -4,6 +4,7 @@ import hashlib
 import os
 import re
 import json
+from datetime import datetime, timezone
 
 def extract_from_main():
     main_cpp = os.path.join(env.get("PROJECT_DIR"), "src", "main.cpp")
@@ -56,9 +57,12 @@ def after_build(source, target, env):
     # e.g. .../firmware/version.json → .../firmware/firmware_1.0.3.bin
     firmware_url = version_url.rsplit("/", 1)[0] + "/" + bin_name
 
+    build_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
     version_json = {
         "version":      version,
         "firmware_url": firmware_url,
+        "build_date":   build_date,
         "sha256":       sha256,
     }
     json_path = os.path.join(firmware_dir, "version.json")
@@ -68,6 +72,7 @@ def after_build(source, target, env):
     print(f"[OTA] version.json written:")
     print(f"      version      : {version}")
     print(f"      firmware_url : {firmware_url}")
+    print(f"      build_date   : {build_date}")
     print(f"      sha256       : {sha256}")
 
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", after_build)

@@ -40,17 +40,18 @@
 #define _OTAT_COL_LBL     20     // x: label text start
 #define _OTAT_COL_VAL    215     // x: value text start
 
-#define _OTAT_Y_RUN       72     // "Running version" row   (Font 4, 26 px)
-#define _OTAT_Y_REM      110     // "Remote  version" row
-#define _OTAT_Y_DIV      143     // divider line y
-#define _OTAT_Y_STAT     158     // status / filename row   (Font 4, centred)
-#define _OTAT_Y_BAR      187     // progress bar top-left y
-#define _OTAT_BAR_H       36     // progress bar height
-#define _OTAT_Y_PCT      238     // "65%  -  647 / 996 KB"  (Font 2, centred)
-#define _OTAT_Y_MSG      268     // "Flash complete!"        (Font 4, centred)
-#define _OTAT_Y_BOOT     291     // "Boot partition → app1" (Font 2, centred)
-#define _OTAT_Y_COUNT    312     // countdown line          (Font 2, centred)
-//  Verify bottom edge: _OTAT_Y_COUNT ± 8 (Font-2 half-height) = 304 … 320 ✓
+#define _OTAT_Y_RUN       68     // "Running version" row   (Font 4, 26 px)
+#define _OTAT_Y_REM      100     // "Remote  version" row
+#define _OTAT_Y_DATE     122     // "Build date"      row   (Font 2)
+#define _OTAT_Y_DIV      138     // divider line y
+#define _OTAT_Y_STAT     153     // status / filename row   (Font 4, centred)
+#define _OTAT_Y_BAR      170     // progress bar top-left y
+#define _OTAT_BAR_H       32     // progress bar height
+#define _OTAT_Y_PCT      215     // "65%  -  647 / 996 KB"  (Font 2, centred)
+#define _OTAT_Y_MSG      242     // "Flash complete!"        (Font 4, centred)
+#define _OTAT_Y_BOOT     264     // "Boot partition → app1" (Font 2, centred)
+#define _OTAT_Y_COUNT    286     // countdown line          (Font 2, centred)
+//  Verify bottom edge: _OTAT_Y_COUNT + 8 (Font-2 half-height) = 294 < 320 ✓
 
 // ─── Internal: drawing primitives ────────────────────────────────────────────
 
@@ -75,6 +76,18 @@ static void _otat_vrow(TFT_eSPI& tft, int y,
     // Value — Font 4, prominent
     tft.setTextColor(vcol, _OTAT_BG);
     tft.setTextFont(4);
+    tft.drawString(value, _OTAT_COL_VAL, y);
+}
+
+// Draw a small info row (Font 2 for both label and value).
+static void _otat_srow(TFT_eSPI& tft, int y,
+                        const char* label, const char* value, uint16_t vcol) {
+    tft.fillRect(0, y - 10, _OTAT_W, 22, _OTAT_BG);
+    tft.setTextDatum(ML_DATUM);
+    tft.setTextFont(2);
+    tft.setTextColor(_OTAT_LABEL, _OTAT_BG);
+    tft.drawString(label, _OTAT_COL_LBL, y);
+    tft.setTextColor(vcol, _OTAT_BG);
     tft.drawString(value, _OTAT_COL_VAL, y);
 }
 
@@ -142,6 +155,7 @@ static bool _otat_check(TFT_eSPI& tft,
     _otat_header(tft);
     _otat_vrow(tft, _OTAT_Y_RUN, "Running version :", currentVersion, _OTAT_VALUE);
     _otat_vrow(tft, _OTAT_Y_REM, "Remote  version :", "...", _OTAT_DIM);
+    _otat_srow(tft, _OTAT_Y_DATE, "Build date      :", "...", _OTAT_DIM);
     _otat_divider(tft);
     _otat_status(tft, "Connecting to GitHub...", _OTAT_DIM);
 
@@ -176,11 +190,13 @@ static bool _otat_check(TFT_eSPI& tft,
     String remoteVer = doc["version"]      | String("?");
     String fwUrl     = doc["firmware_url"] | String("");
     String sha256    = doc["sha256"]       | String("");
+    String buildDate = doc["build_date"]   | String("n/a");
     bool   isNew     = (remoteVer != String(currentVersion));
 
-    // Update the remote-version row with its real value and colour
+    // Update the remote-version and build-date rows with real values
     _otat_vrow(tft, _OTAT_Y_REM, "Remote  version :",
                remoteVer.c_str(), isNew ? _OTAT_NEW : _OTAT_OK);
+    _otat_srow(tft, _OTAT_Y_DATE, "Build date      :", buildDate.c_str(), _OTAT_DIM);
 
     if (isNew) {
         // Small "(NEW)" badge to the right of the version value
