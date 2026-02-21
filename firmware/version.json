@@ -1,6 +1,6 @@
 {
-  "version": "1.0.6",
-  "firmware_url": "https://raw.githubusercontent.com/HB9IIU/ESP32-TFT_HB9IIU_GOODIES/main/firmware/firmware_1.0.6.bin",
-  "build_date": "2026-02-21",
-  "sha256": "fbf1bd5323493b737b60fa069782a1c05a86c290b593cd4dff5a38dc3d82e266"
+  "version": "1.0.88",
+  "firmware_url": "https://raw.githubusercontent.com/HB9IIU/ESP32-TFT_HB9IIU_GOODIES/main/firmware/firmware_1.0.88.bin",
+  "build_date": "21.02.2026 @ 14:56",
+  "sha256": "616932ec47cc3f6da9820a3c43e6b7925ae7efd5a4a7a547a5024b79b34d7bba"
 }

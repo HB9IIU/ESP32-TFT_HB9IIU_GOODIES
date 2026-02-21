@@ -57,7 +57,7 @@ def after_build(source, target, env):
     # e.g. .../firmware/version.json → .../firmware/firmware_1.0.3.bin
     firmware_url = version_url.rsplit("/", 1)[0] + "/" + bin_name
 
-    build_date = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    build_date = datetime.now(timezone.utc).strftime("%d.%m.%Y @ %H:%M")
 
     version_json = {
         "version":      version,
