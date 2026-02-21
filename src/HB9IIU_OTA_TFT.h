@@ -73,10 +73,11 @@ static void _otat_vrow(TFT_eSPI& tft, int y,
     tft.setTextFont(2);
     tft.setTextColor(_OTAT_LABEL, _OTAT_BG);
     tft.drawString(label, _OTAT_COL_LBL, y + 5);
-    // Value — Font 4, prominent
+    // Value — Font 4, prominent, centred horizontally
+    tft.setTextDatum(MC_DATUM);
     tft.setTextColor(vcol, _OTAT_BG);
     tft.setTextFont(4);
-    tft.drawString(value, _OTAT_COL_VAL, y);
+    tft.drawString(value, _OTAT_W / 2, y);
 }
 
 // Draw a small info row (Font 2 for both label and value).
@@ -87,8 +88,9 @@ static void _otat_srow(TFT_eSPI& tft, int y,
     tft.setTextFont(2);
     tft.setTextColor(_OTAT_LABEL, _OTAT_BG);
     tft.drawString(label, _OTAT_COL_LBL, y);
+    tft.setTextDatum(MC_DATUM);
     tft.setTextColor(vcol, _OTAT_BG);
-    tft.drawString(value, _OTAT_COL_VAL, y);
+    tft.drawString(value, _OTAT_W / 2, y);
 }
 
 static void _otat_divider(TFT_eSPI& tft) {
@@ -153,9 +155,9 @@ static bool _otat_check(TFT_eSPI& tft,
                          const char* versionUrl, const char* currentVersion,
                          String& outUrl, String& outSha) {
     _otat_header(tft);
-    _otat_vrow(tft, _OTAT_Y_RUN, "Running version :", currentVersion, _OTAT_VALUE);
-    _otat_vrow(tft, _OTAT_Y_REM, "Remote  version :", "...", _OTAT_DIM);
-    _otat_srow(tft, _OTAT_Y_DATE, "Build date      :", "...", _OTAT_DIM);
+    _otat_vrow(tft, _OTAT_Y_RUN, "Running Version:", currentVersion, _OTAT_VALUE);
+    _otat_vrow(tft, _OTAT_Y_REM, "Remote Version:", "...", _OTAT_DIM);
+    _otat_srow(tft, _OTAT_Y_DATE, "Build Date:", "...", _OTAT_DIM);
     _otat_divider(tft);
     _otat_status(tft, "Connecting to GitHub...", _OTAT_DIM);
 
@@ -194,16 +196,16 @@ static bool _otat_check(TFT_eSPI& tft,
     bool   isNew     = (remoteVer != String(currentVersion));
 
     // Update the remote-version and build-date rows with real values
-    _otat_vrow(tft, _OTAT_Y_REM, "Remote  version :",
+    _otat_vrow(tft, _OTAT_Y_REM, "Remote Version:",
                remoteVer.c_str(), isNew ? _OTAT_NEW : _OTAT_OK);
-    _otat_srow(tft, _OTAT_Y_DATE, "Build date      :", buildDate.c_str(), _OTAT_DIM);
+    _otat_srow(tft, _OTAT_Y_DATE, "Build Date:", buildDate.c_str(), _OTAT_DIM);
 
     if (isNew) {
         // Small "(NEW)" badge to the right of the version value
         tft.setTextFont(2);
         tft.setTextColor(_OTAT_NEW, _OTAT_BG);
         tft.setTextDatum(ML_DATUM);
-        tft.drawString("(NEW)", _OTAT_COL_VAL + 90, _OTAT_Y_REM + 5);
+        tft.drawString("(NEW)", _OTAT_W / 2 + 60, _OTAT_Y_REM + 5);
         _otat_status(tft, "Update available!", _OTAT_NEW);
         delay(700);
         outUrl = fwUrl;
