@@ -7,7 +7,7 @@
 #define LOAD_GFXFF
 #endif
 #include <HB9IIU_RobustWIfiConnection.h>
-#include "HB9IIU_OTA_BASIC.h"
+#include "HB9IIU_OTA_TFT.h"
 
 const char* VERSION_URL     = "https://raw.githubusercontent.com/HB9IIU/ESP32-TFT_HB9IIU_GOODIES/main/firmware/version.json";
 const char* CURRENT_VERSION = "1.0.3";
@@ -26,7 +26,7 @@ void setup()
   Serial.println("Hello World!");
   HB9IIUWifiConnection(false);
 
-  HB9IIU_OTA_BASIC_checkAndUpdate(VERSION_URL, CURRENT_VERSION);
+  HB9IIU_OTA_TFT_checkAndUpdate(VERSION_URL, CURRENT_VERSION, tft);
 }
 
 void loop()
