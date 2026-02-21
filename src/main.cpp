@@ -13,7 +13,7 @@
 #include "esp_ota_ops.h"
 
 const char* VERSION_URL     = "https://raw.githubusercontent.com/HB9IIU/ESP32-TFT_HB9IIU_GOODIES/main/firmware/version.json";
-const char* CURRENT_VERSION = "1.0.1";
+const char* CURRENT_VERSION = "1.0.2";
 static TFT_eSPI tft = TFT_eSPI();
 
 // FUNCTION PROTOTYPES
