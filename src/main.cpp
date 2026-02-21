@@ -26,6 +26,20 @@ void setup()
   HB9IIUWifiConnection(false);
 
   HB9IIU_OTA_TFT_checkAndUpdate(VERSION_URL, CURRENT_VERSION, tft);
+
+  // ── Post-OTA: prove the app resumed normally ─────────────────────────────
+  tft.fillScreen(TFT_BLACK);
+  tft.setTextDatum(MC_DATUM);
+
+  tft.setTextFont(4);
+  tft.setTextColor(TFT_GREEN, TFT_BLACK);
+  tft.drawString("App is running!", 240, 140);
+
+  tft.setTextFont(2);
+  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
+  char buf[32];
+  snprintf(buf, sizeof(buf), "firmware v%s", CURRENT_VERSION);
+  tft.drawString(buf, 240, 175);
 }
 
 void loop()
