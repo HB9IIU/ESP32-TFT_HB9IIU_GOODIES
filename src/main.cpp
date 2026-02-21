@@ -9,7 +9,7 @@
 #include "HB9IIU_OTA_TFT.h"
 
 const char* VERSION_URL     = "https://raw.githubusercontent.com/HB9IIU/ESP32-TFT_HB9IIU_GOODIES/main/firmware/version.json";
-const char* CURRENT_VERSION = "1.0.8";
+const char* CURRENT_VERSION = "1.0.10";
 static TFT_eSPI tft = TFT_eSPI();
 
 void setup()
@@ -27,19 +27,7 @@ void setup()
 
   HB9IIU_OTA_TFT_checkAndUpdate(VERSION_URL, CURRENT_VERSION, tft);
 
-  // ── Post-OTA: prove the app resumed normally ─────────────────────────────
-  tft.fillScreen(TFT_BLACK);
-  tft.setTextDatum(MC_DATUM);
 
-  tft.setTextFont(4);
-  tft.setTextColor(TFT_GREEN, TFT_BLACK);
-  tft.drawString("App is running!", 240, 140);
-
-  tft.setTextFont(2);
-  tft.setTextColor(TFT_DARKGREY, TFT_BLACK);
-  char buf[32];
-  snprintf(buf, sizeof(buf), "firmware v%s", CURRENT_VERSION);
-  tft.drawString(buf, 240, 175);
 }
 
 void loop()
