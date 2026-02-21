@@ -244,9 +244,8 @@ static bool _otat_download(TFT_eSPI& tft,
         http.end(); return false;
     }
 
-    // Show filename and empty progress bar
-    String fname = firmwareUrl.substring(firmwareUrl.lastIndexOf('/') + 1);
-    _otat_status(tft, fname.c_str(), _OTAT_VALUE);
+    // Show download status and empty progress bar
+    _otat_status(tft, "Downloading...", _OTAT_DIM);
     _otat_bar(tft, 0, total);
 
     esp_ota_handle_t handle;
