@@ -83,15 +83,15 @@ bool checkForFirmwareUpdate(String& outFirmwareUrl, String& outSha256) {
         return false;
     }
     String remoteVersion = doc["version"];
-    String sha256 = doc["sha256"];
+    String firmwareUrl   = doc["firmware_url"];
+    String sha256        = doc["sha256"];
     Serial.println("🛰️ [OTA] Checking for firmware update...");
     Serial.println("📦 [OTA] Remote version: " + remoteVersion);
     Serial.println("🔒 [OTA] SHA-256: " + sha256);
     if (remoteVersion != CURRENT_VERSION) {
         Serial.println("🚀 [OTA] Update available!");
         Serial.println("🆕 [OTA] New firmware found: " + remoteVersion);
-        outFirmwareUrl = String(VERSION_URL);
-        outFirmwareUrl.replace("version.json", "firmware.bin");
+        outFirmwareUrl = firmwareUrl;
         outSha256 = sha256;
         return true;
     } else {

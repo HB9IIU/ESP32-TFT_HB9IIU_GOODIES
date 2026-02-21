@@ -5,40 +5,69 @@ import os
 import re
 import json
 
-def extract_version_from_main():
+def extract_from_main():
     main_cpp = os.path.join(env.get("PROJECT_DIR"), "src", "main.cpp")
     version = None
+    version_url = None
     with open(main_cpp, "r") as f:
         for line in f:
-            m = re.search(r'const char\s*\*\s*CURRENT_VERSION\s*=\s*"([^"]+)"', line)
-            if m:
-                version = m.group(1)
+            if version is None:
+                m = re.search(r'const char\s*\*\s*CURRENT_VERSION\s*=\s*"([^"]+)"', line)
+                if m:
+                    version = m.group(1)
+            if version_url is None:
+                m = re.search(r'const char\s*\*\s*VERSION_URL\s*=\s*"([^"]+)"', line)
+                if m:
+                    version_url = m.group(1)
+            if version and version_url:
                 break
     if not version:
         raise RuntimeError("Could not find CURRENT_VERSION in main.cpp!")
-    return version
+    if not version_url:
+        raise RuntimeError("Could not find VERSION_URL in main.cpp!")
+    return version, version_url
 
 def after_build(source, target, env):
     firmware_path = str(target[0])
-    project_dir = env.get("PROJECT_DIR")
-    firmware_dir = os.path.join(project_dir, "firmware")
-    os.makedirs(firmware_dir, exist_ok=True)
-    firmware_out = os.path.join(firmware_dir, "firmware.bin")
+    project_dir   = env.get("PROJECT_DIR")
+    firmware_dir  = os.path.join(project_dir, "firmware")
+
+    # Wipe the firmware directory so no stale binaries linger
+    if os.path.exists(firmware_dir):
+        shutil.rmtree(firmware_dir)
+    os.makedirs(firmware_dir)
+    print("[OTA] Cleared firmware/")
+
+    version, version_url = extract_from_main()
+    print(f"[OTA] Version : {version}")
+    print(f"[OTA] Base URL: {version_url}")
+
+    # Versioned binary name, e.g. firmware_1.0.3.bin
+    bin_name    = f"firmware_{version}.bin"
+    firmware_out = os.path.join(firmware_dir, bin_name)
     shutil.copy2(firmware_path, firmware_out)
-    print(f"[OTA] Copied firmware.bin to {firmware_out}")
+    print(f"[OTA] Copied → firmware/{bin_name}")
+
     with open(firmware_out, "rb") as f:
         sha256 = hashlib.sha256(f.read()).hexdigest()
-    print("[OTA] SHA-256 for firmware.bin:", sha256)
-    version = extract_version_from_main()
-    print("[OTA] Version from main.cpp:", version)
-    # Generate version.json (firmware_url can be derived on ESP32, so leave as empty or placeholder)
+    print(f"[OTA] SHA-256 : {sha256}")
+
+    # Derive the firmware download URL from VERSION_URL
+    # e.g. .../firmware/version.json → .../firmware/firmware_1.0.3.bin
+    firmware_url = version_url.rsplit("/", 1)[0] + "/" + bin_name
+
     version_json = {
-        "version": version,
-        "sha256": sha256
+        "version":      version,
+        "firmware_url": firmware_url,
+        "sha256":       sha256,
     }
-    with open(os.path.join(firmware_dir, "version.json"), "w") as outf:
-        json.dump(version_json, outf, indent=2)
-        outf.write("\n")
-    print("[OTA] version.json generated.")
+    json_path = os.path.join(firmware_dir, "version.json")
+    with open(json_path, "w") as f:
+        json.dump(version_json, f, indent=2)
+        f.write("\n")
+    print(f"[OTA] version.json written:")
+    print(f"      version      : {version}")
+    print(f"      firmware_url : {firmware_url}")
+    print(f"      sha256       : {sha256}")
 
 env.AddPostAction("$BUILD_DIR/${PROGNAME}.bin", after_build)
